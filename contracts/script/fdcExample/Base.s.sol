@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import {console} from "dependencies/forge-std-1.9.5/src/console.sol";
-import {Vm} from "dependencies/forge-std-1.9.5/src/Vm.sol";
-import {Surl} from "dependencies/surl-0.0.0/src/Surl.sol";
+import {console} from "forge-std/console.sol";
+import {Vm} from "forge-std/Vm.sol";
+import {Surl} from "surl/Surl.sol";
 import {Strings} from "@openzeppelin-contracts/utils/Strings.sol";
-import {ContractRegistry} from "dependencies/flare-periphery-0.0.22/src/coston2/ContractRegistry.sol";
-import {IFdcHub} from "dependencies/flare-periphery-0.0.22/src/coston2/IFdcHub.sol";
-import {IFlareSystemsManager} from "dependencies/flare-periphery-0.0.22/src/coston2/IFlareSystemsManager.sol";
-import {IAddressValidity} from "dependencies/flare-periphery-0.0.22/src/coston2/IAddressValidity.sol";
-import {TransferEventListener} from "src/FdcTransferEventListener.sol";
-import {Base as StringsBase} from "src/utils/fdcStrings/Base.sol";
-import {IFdcRequestFeeConfigurations} from "dependencies/flare-periphery-0.0.22/src/coston2/IFdcRequestFeeConfigurations.sol";
+import {ContractRegistry} from "flare-periphery/src/coston2/ContractRegistry.sol";
+import {IFdcHub} from "flare-periphery/src/coston2/IFdcHub.sol";
+import {IFlareSystemsManager} from "flare-periphery/src/coston2/IFlareSystemsManager.sol";
+import {IAddressValidity} from "flare-periphery/src/coston2/IAddressValidity.sol";
+import {Base as StringsBase} from "../../src/utils/fdcStrings/Base.sol";
+import {IFdcRequestFeeConfigurations} from "flare-periphery/src/coston2/IFdcRequestFeeConfigurations.sol";
 
 address constant VM_ADDRESS = address(
     uint160(uint256(keccak256("hevm cheat code")))
