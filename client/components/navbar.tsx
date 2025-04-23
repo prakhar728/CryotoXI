@@ -12,9 +12,6 @@ import { ThemeToggle } from "@/components/theme-toggle"
 export default function Navbar() {
   const [walletConnected, setWalletConnected] = useState(false)
 
-  const connectWallet = () => {
-    setWalletConnected(true)
-  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -62,10 +59,7 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button size="sm" onClick={connectWallet} className="flex items-center gap-2">
-              <Wallet className="h-4 w-4" />
-              <span className="hidden sm:inline-block">Connect Wallet</span>
-            </Button>
+            <appkit-button />
           )}
 
           <Button variant="ghost" size="icon" className="hidden md:flex">

@@ -1,12 +1,41 @@
+'use client';
+
 import Link from "next/link"
 import Image from "next/image"
-import { CalendarDays, Clock, Trophy } from "lucide-react"
+import { CalendarDays, Clock, PlusCircle, Trophy } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react"
+import { CreateTournamentDialog } from "@/components/create-tournament"
+
+export function AdminControls() {
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  
+  return (
+    <>
+      <div className="flex justify-end mb-4">
+        <Button 
+          onClick={() => setShowCreateDialog(true)}
+          className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Create Tournament
+        </Button>
+      </div>
+      
+      <CreateTournamentDialog 
+        open={showCreateDialog} 
+        onOpenChange={setShowCreateDialog} 
+      />
+    </>
+  )
+}
 
 export default function DashboardPage() {
+  const [isAdmin, setisAdmin] = useState(true);
+
   return (
     <div className="container py-10">
       <div className="flex flex-col gap-6">
@@ -14,6 +43,8 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Match Selection</h1>
           <p className="text-muted-foreground">Select a match to create your fantasy team or view your existing team</p>
         </div>
+
+        {isAdmin && <AdminControls />}
 
         <Tabs defaultValue="ongoing" className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-8">

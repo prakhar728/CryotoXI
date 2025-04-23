@@ -24,7 +24,7 @@ export default function LandingPage() {
                 size="lg"
                 className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
               >
-                <Wallet className="mr-2 h-4 w-4" /> Connect Wallet & Start Playing
+                 Start Playing
               </Button>
               <Button size="lg" variant="outline">
                 Learn More <ArrowRight className="ml-2 h-4 w-4" />
@@ -141,7 +141,7 @@ export default function LandingPage() {
                 size="lg"
                 className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
               >
-                <Wallet className="mr-2 h-4 w-4" /> Connect Wallet & Start Playing
+                Start Playing
               </Button>
               <Link href="/dashboard">
                 <Button size="lg" variant="outline">
