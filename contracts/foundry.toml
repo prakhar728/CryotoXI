@@ -5,7 +5,9 @@ src = "src"
 out = "out"
 libs = ["dependencies"]
 fs_permissions = [{ access = "read-write", path = "./" }]
-
+via_ir = true  # Added this line to enable IR-based compilation
+optimizer = true  # Added optimizer
+optimizer_runs = 200  # Set optimizer runs
 
 [dependencies]
 forge-std = "1.9.5"

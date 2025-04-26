@@ -33,10 +33,23 @@ const formatDate = (date) => {
  * @param {string} dateTimeGMT - GMT datetime string
  * @returns {string} Formatted time string
  */
-const formatTimeFromGMT = (dateTimeGMT) => {
+const formatTimeFromGMT = (dateTimeGMT: string) => {
   const date = new Date(dateTimeGMT);
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
+
+/**
+ * Format time from GMT string to local time format HH:MM
+ * @param {string} dateTimeGMT - GMT datetime string
+ * @returns {string} Formatted time string
+ */
+function toUnixTimestamp(dateTimeGMT: string): number {
+  // Parse the input date string and get the timestamp in milliseconds
+  const date = new Date(dateTimeGMT);
+  
+  // Convert to seconds by dividing by 1000
+  return Math.floor(date.getTime() / 1000);
+}
 
 /**
  * Generic function to make API calls to Cricket API
@@ -170,11 +183,13 @@ export const formatMatchDataForForm = (matchData) => {
   // Get match date and time
   let dateStr = '';
   let timeStr = '';
+  let unixTime = 0;
   
   if (match.dateTimeGMT) {
     const matchDate = new Date(match.dateTimeGMT);
     dateStr = formatDate(matchDate);
     timeStr = formatTimeFromGMT(match.dateTimeGMT);
+    unixTime = toUnixTimestamp(match.dateTimeGMT);
   } else if (match.date) {
     dateStr = match.date;
   }
@@ -192,6 +207,7 @@ export const formatMatchDataForForm = (matchData) => {
     type: type,
     date: dateStr,
     time: timeStr,
+    unixTime,
     venue: match.venue || '',
     status: status,
     isUpcoming,

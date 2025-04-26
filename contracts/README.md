@@ -190,3 +190,9 @@ surl/=dependencies/surl-0.0.0/
 ```
 
 Copy the `.env.example` to `.env` and fill in the `PRIVATE_KEY`
+
+
+Deploying CryptoXI Fantasy Cricket Platform...
+  Using cricket API key: XXXX
+  ContestFactory deployed to: 0xA98C38349711bD74D3fc25F88996e2AF3D8d2998
+  FDCDataConsumer deployed to: 0x522fc68Fcc04e736b8c8e031684C839ed786685e
