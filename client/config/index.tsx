@@ -23,7 +23,7 @@ export const wagmiAdapter = new WagmiAdapter({
   projectId,
   networks,
   transports: {
-    [flareTestnet.id]: http("https://coston2-api.flare.network/ext/C/rpc"),
+    [flareTestnet.id]: http("https://falling-skilled-uranium.flare-coston2.quiknode.pro/ext/bc/C/rpc"),
   },
 })
 

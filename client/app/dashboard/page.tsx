@@ -9,7 +9,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useState } from "react"
 import { CreateTournamentDialog } from "@/components/create-tournament"
-import { useReadContracts } from "wagmi";
+import { useChainId, useReadContract, useReadContracts } from "wagmi";
 import contractConfig from "@/contracts";
 
 export function AdminControls() {
@@ -39,13 +39,32 @@ export default function DashboardPage() {
   const [isAdmin, setisAdmin] = useState(true);
   const [allMatches, setAllMatches] = useState([]);
 
+  
+  const { data: contestIds, isLoading: isLoadingIds, error: readError } = useReadContract({
+    address: contractConfig.ContestFactoryAddress,
+    abi: contractConfig.ContestFactory.abi,
+    functionName: 'getAllContests',
+    chainId: 114
+  });
+
+  console.log({
+    address: contractConfig.ContestFactoryAddress,
+    abi: contractConfig.ContestFactory.abi,
+    functionName: 'getAllContests',
+    chainId: 114
+  });
+  
+  console.log(contestIds);
+  
+  if (readError) console.log(readError);
+  
   // const {
-  //   data: allPapers,
+  //   data: allContests,
   //   isLoading,
   //   error: multipleReadError,
   // } = contractConfig.ContestFactory
   //   ? useReadContracts({
-  //       contracts: (parseInt(latestPaperId) ? new Array(parseInt(latestPaperId)) : []).fill(null).map((_, index) => ({
+  //       contracts: (parseInt(contestIds) ? new Array(parseInt(latestPaperId)) : []).fill(null).map((_, index) => ({
   //         address: ContractAddresses.sageNetCore as `0x${string}`,
   //         abi: SageNetCore.abi,
   //         functionName: "getPaper",
