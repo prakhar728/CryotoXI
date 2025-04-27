@@ -1,62 +1,109 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { ArrowLeft, Clock, Crown } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft, Clock, Crown } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useParams } from "next/navigation";
+import { useReadContract } from "wagmi";
+import contractConfig from "@/contracts";
 
-export default function MatchDetailPage({ params }: { params: { id: string } }) {
-  const matchId = params.id
-  const match = getMatchById(matchId)
-  const [hasTeam, setHasTeam] = useState(match?.hasTeam || false)
-  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([])
-  const [captain, setCaptain] = useState<string | null>(null)
-  const [viceCaptain, setViceCaptain] = useState<string | null>(null)
-  const [budget, setBudget] = useState(100)
-  const [activeTab, setActiveTab] = useState("all")
+export default function MatchDetailPage() {
+  const params = useParams();
+
+  const contestId = params.id as string;
+  const match = getMatchById(contestId);
+  const [hasTeam, setHasTeam] = useState(match?.hasTeam || false);
+  const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
+  const [captain, setCaptain] = useState<string | null>(null);
+  const [viceCaptain, setViceCaptain] = useState<string | null>(null);
+  const [budget, setBudget] = useState(100);
+  const [activeTab, setActiveTab] = useState("all");
+  const [contest, setContest] = useState([])
 
   const handlePlayerSelection = (playerId: string, cost: number) => {
     if (selectedPlayers.includes(playerId)) {
-      setSelectedPlayers(selectedPlayers.filter((id) => id !== playerId))
-      setBudget(budget + cost)
-      if (captain === playerId) setCaptain(null)
-      if (viceCaptain === playerId) setViceCaptain(null)
+      setSelectedPlayers(selectedPlayers.filter((id) => id !== playerId));
+      setBudget(budget + cost);
+      if (captain === playerId) setCaptain(null);
+      if (viceCaptain === playerId) setViceCaptain(null);
     } else {
-      if (selectedPlayers.length >= 11) return
-      if (budget < cost) return
-      setSelectedPlayers([...selectedPlayers, playerId])
-      setBudget(budget - cost)
+      if (selectedPlayers.length >= 11) return;
+      if (budget < cost) return;
+      setSelectedPlayers([...selectedPlayers, playerId]);
+      setBudget(budget - cost);
     }
-  }
+  };
 
   const setCaptainRole = (playerId: string) => {
     if (captain === playerId) {
-      setCaptain(null)
+      setCaptain(null);
     } else {
-      setCaptain(playerId)
-      if (viceCaptain === playerId) setViceCaptain(null)
+      setCaptain(playerId);
+      if (viceCaptain === playerId) setViceCaptain(null);
     }
-  }
+  };
 
   const setViceCaptainRole = (playerId: string) => {
     if (viceCaptain === playerId) {
-      setViceCaptain(null)
+      setViceCaptain(null);
     } else {
-      setViceCaptain(playerId)
-      if (captain === playerId) setCaptain(null)
+      setViceCaptain(playerId);
+      if (captain === playerId) setCaptain(null);
     }
-  }
+  };
 
   const submitTeam = () => {
-    if (selectedPlayers.length !== 11) return
-    if (!captain || !viceCaptain) return
-    setHasTeam(true)
-  }
+    if (selectedPlayers.length !== 11) return;
+    if (!captain || !viceCaptain) return;
+    setHasTeam(true);
+  };
+
+  const {
+    data: contestData,
+    isLoading: isLoadingIds,
+    error: readError,
+  } = useReadContract({
+    address: contractConfig.ContestFactoryAddress,
+    abi: contractConfig.ContestFactory.abi,
+    functionName: "getContest",
+    args: [contestId],
+  });
+
+
+  useEffect(() => {
+    const formatContestData = async () => {
+      if (!contestData) return;
+
+      let t = JSON.parse(await (await fetch(`https://gateway.lighthouse.storage/ipfs/${contestData.ipfsHash}`)).text());
+
+      setContest({
+        ...contestData,
+        ...t
+      });
+
+      console.log({
+        ...contestData,
+        ...t
+      });
+      
+    }
+
+    formatContestData()
+
+  }, [contestData])
+  
 
   if (!match) {
     return (
@@ -66,7 +113,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
           <Button className="mt-4">Back to Dashboard</Button>
         </Link>
       </div>
-    )
+    );
   }
 
   return (
@@ -81,7 +128,10 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
           <h1 className="text-3xl font-bold tracking-tight">
             {match.teamA} vs {match.teamB}
           </h1>
-          <Badge variant="outline" className="ml-2 bg-primary/10 text-primary border-primary/20">
+          <Badge
+            variant="outline"
+            className="ml-2 bg-primary/10 text-primary border-primary/20"
+          >
             {match.type}
           </Badge>
         </div>
@@ -89,14 +139,23 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span>{match.status === "live" ? "LIVE" : match.date + " • " + match.time}</span>
+            <span>
+              {match.status === "live"
+                ? "LIVE"
+                : match.date + " • " + match.time}
+            </span>
           </div>
           <div>Entry Fee: {match.entryFee} FLR</div>
           <div>Prize Pool: {match.prizePool} FLR</div>
         </div>
 
         {hasTeam ? (
-          <TeamView match={match} selectedPlayers={selectedPlayers} captain={captain} viceCaptain={viceCaptain} />
+          <TeamView
+            match={match}
+            selectedPlayers={selectedPlayers}
+            captain={captain}
+            viceCaptain={viceCaptain}
+          />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
@@ -106,17 +165,26 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                     <CardTitle>Select Players</CardTitle>
                     <div className="flex items-center gap-2">
                       <span className="text-sm">Selected:</span>
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                      <Badge
+                        variant="outline"
+                        className="bg-primary/10 text-primary border-primary/20"
+                      >
                         {selectedPlayers.length}/11
                       </Badge>
                     </div>
                   </div>
                   <CardDescription>
-                    Select 11 players within the budget and choose a captain and vice-captain
+                    Select 11 players within the budget and choose a captain and
+                    vice-captain
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="w-full">
+                  <Tabs
+                    defaultValue="all"
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="w-full"
+                  >
                     <TabsList className="grid w-full grid-cols-5 mb-6">
                       <TabsTrigger value="all">All</TabsTrigger>
                       <TabsTrigger value="bat">BAT</TabsTrigger>
@@ -134,12 +202,17 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                             isSelected={selectedPlayers.includes(player.id)}
                             isCaptain={captain === player.id}
                             isViceCaptain={viceCaptain === player.id}
-                            onSelect={() => handlePlayerSelection(player.id, player.cost)}
+                            onSelect={() =>
+                              handlePlayerSelection(player.id, player.cost)
+                            }
                             onCaptainSelect={() => setCaptainRole(player.id)}
-                            onViceCaptainSelect={() => setViceCaptainRole(player.id)}
+                            onViceCaptainSelect={() =>
+                              setViceCaptainRole(player.id)
+                            }
                             disabled={
                               !selectedPlayers.includes(player.id) &&
-                              (selectedPlayers.length >= 11 || budget < player.cost)
+                              (selectedPlayers.length >= 11 ||
+                                budget < player.cost)
                             }
                           />
                         ))}
@@ -157,12 +230,17 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                               isSelected={selectedPlayers.includes(player.id)}
                               isCaptain={captain === player.id}
                               isViceCaptain={viceCaptain === player.id}
-                              onSelect={() => handlePlayerSelection(player.id, player.cost)}
+                              onSelect={() =>
+                                handlePlayerSelection(player.id, player.cost)
+                              }
                               onCaptainSelect={() => setCaptainRole(player.id)}
-                              onViceCaptainSelect={() => setViceCaptainRole(player.id)}
+                              onViceCaptainSelect={() =>
+                                setViceCaptainRole(player.id)
+                              }
                               disabled={
                                 !selectedPlayers.includes(player.id) &&
-                                (selectedPlayers.length >= 11 || budget < player.cost)
+                                (selectedPlayers.length >= 11 ||
+                                  budget < player.cost)
                               }
                             />
                           ))}
@@ -193,25 +271,45 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                     <div className="flex flex-col items-center">
                       <div className="text-sm text-muted-foreground">BAT</div>
                       <div className="font-bold">
-                        {selectedPlayers.filter((id) => players.find((p) => p.id === id)?.role === "BAT").length}
+                        {
+                          selectedPlayers.filter(
+                            (id) =>
+                              players.find((p) => p.id === id)?.role === "BAT"
+                          ).length
+                        }
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
                       <div className="text-sm text-muted-foreground">BOWL</div>
                       <div className="font-bold">
-                        {selectedPlayers.filter((id) => players.find((p) => p.id === id)?.role === "BOWL").length}
+                        {
+                          selectedPlayers.filter(
+                            (id) =>
+                              players.find((p) => p.id === id)?.role === "BOWL"
+                          ).length
+                        }
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
                       <div className="text-sm text-muted-foreground">AR</div>
                       <div className="font-bold">
-                        {selectedPlayers.filter((id) => players.find((p) => p.id === id)?.role === "AR").length}
+                        {
+                          selectedPlayers.filter(
+                            (id) =>
+                              players.find((p) => p.id === id)?.role === "AR"
+                          ).length
+                        }
                       </div>
                     </div>
                     <div className="flex flex-col items-center">
                       <div className="text-sm text-muted-foreground">WK</div>
                       <div className="font-bold">
-                        {selectedPlayers.filter((id) => players.find((p) => p.id === id)?.role === "WK").length}
+                        {
+                          selectedPlayers.filter(
+                            (id) =>
+                              players.find((p) => p.id === id)?.role === "WK"
+                          ).length
+                        }
                       </div>
                     </div>
                   </div>
@@ -221,14 +319,18 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                       <Crown className="h-4 w-4 text-yellow-500" />
                       <span>Captain</span>
                       <span className="ml-auto font-bold">
-                        {captain ? players.find((p) => p.id === captain)?.name : "Not Selected"}
+                        {captain
+                          ? players.find((p) => p.id === captain)?.name
+                          : "Not Selected"}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Crown className="h-4 w-4 text-gray-400" />
                       <span>Vice Captain</span>
                       <span className="ml-auto font-bold">
-                        {viceCaptain ? players.find((p) => p.id === viceCaptain)?.name : "Not Selected"}
+                        {viceCaptain
+                          ? players.find((p) => p.id === viceCaptain)?.name
+                          : "Not Selected"}
                       </span>
                     </div>
                   </div>
@@ -236,7 +338,9 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
                   <Button
                     onClick={submitTeam}
                     className="w-full bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
-                    disabled={selectedPlayers.length !== 11 || !captain || !viceCaptain}
+                    disabled={
+                      selectedPlayers.length !== 11 || !captain || !viceCaptain
+                    }
                   >
                     Submit Team
                   </Button>
@@ -247,7 +351,7 @@ export default function MatchDetailPage({ params }: { params: { id: string } }) 
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function PlayerCard({
@@ -260,14 +364,14 @@ function PlayerCard({
   onViceCaptainSelect,
   disabled,
 }: {
-  player: any
-  isSelected: boolean
-  isCaptain: boolean
-  isViceCaptain: boolean
-  onSelect: () => void
-  onCaptainSelect: () => void
-  onViceCaptainSelect: () => void
-  disabled: boolean
+  player: any;
+  isSelected: boolean;
+  isCaptain: boolean;
+  isViceCaptain: boolean;
+  onSelect: () => void;
+  onCaptainSelect: () => void;
+  onViceCaptainSelect: () => void;
+  disabled: boolean;
 }) {
   return (
     <Card
@@ -275,26 +379,34 @@ function PlayerCard({
         isSelected
           ? "bg-primary/10 border-primary/30"
           : disabled
-            ? "bg-card/30 border-muted/30 opacity-50"
-            : "bg-card/30 backdrop-blur-sm border-muted/30 hover:border-primary/20"
+          ? "bg-card/30 border-muted/30 opacity-50"
+          : "bg-card/30 backdrop-blur-sm border-muted/30 hover:border-primary/20"
       }`}
     >
       <div className="p-4 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${player.initials}`} />
+            <AvatarImage
+              src={`/placeholder.svg?height=40&width=40&text=${player.initials}`}
+            />
             <AvatarFallback>{player.initials}</AvatarFallback>
           </Avatar>
           <div>
             <div className="font-bold flex items-center gap-2">
               {player.name}
               {isCaptain && (
-                <Badge variant="outline" className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30">
+                <Badge
+                  variant="outline"
+                  className="bg-yellow-500/20 text-yellow-500 border-yellow-500/30"
+                >
                   C
                 </Badge>
               )}
               {isViceCaptain && (
-                <Badge variant="outline" className="bg-gray-500/20 text-gray-400 border-gray-500/30">
+                <Badge
+                  variant="outline"
+                  className="bg-gray-500/20 text-gray-400 border-gray-500/30"
+                >
                   VC
                 </Badge>
               )}
@@ -308,7 +420,12 @@ function PlayerCard({
             </div>
           </div>
         </div>
-        <Badge variant="outline" className={isSelected ? "bg-primary/20 text-primary border-primary/30" : ""}>
+        <Badge
+          variant="outline"
+          className={
+            isSelected ? "bg-primary/20 text-primary border-primary/30" : ""
+          }
+        >
           {player.cost} FLR
         </Badge>
       </div>
@@ -358,13 +475,19 @@ function PlayerCard({
       )}
       {!isSelected && (
         <div className="p-3 bg-card/50">
-          <Button variant="outline" size="sm" onClick={onSelect} className="w-full" disabled={disabled}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSelect}
+            className="w-full"
+            disabled={disabled}
+          >
             Select Player
           </Button>
         </div>
       )}
     </Card>
-  )
+  );
 }
 
 function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
@@ -375,7 +498,10 @@ function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Your Team</CardTitle>
-              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/30">
+              <Badge
+                variant="outline"
+                className="bg-green-500/10 text-green-500 border-green-500/30"
+              >
                 Team Submitted
               </Badge>
             </div>
@@ -387,22 +513,27 @@ function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {selectedPlayers.map((playerId: string) => {
-                  const player = players.find((p) => p.id === playerId)
-                  if (!player) return null
+                  const player = players.find((p) => p.id === playerId);
+                  if (!player) return null;
                   return (
-                    <Card key={player.id} className="overflow-hidden bg-card/30 backdrop-blur-sm border-muted/30">
+                    <Card
+                      key={player.id}
+                      className="overflow-hidden bg-card/30 backdrop-blur-sm border-muted/30"
+                    >
                       <div
                         className={`p-4 flex justify-between items-center ${
                           captain === player.id
                             ? "bg-gradient-to-r from-yellow-500/20 to-yellow-600/20"
                             : viceCaptain === player.id
-                              ? "bg-gradient-to-r from-gray-500/20 to-gray-600/20"
-                              : ""
+                            ? "bg-gradient-to-r from-gray-500/20 to-gray-600/20"
+                            : ""
                         }`}
                       >
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={`/placeholder.svg?height=40&width=40&text=${player.initials}`} />
+                            <AvatarImage
+                              src={`/placeholder.svg?height=40&width=40&text=${player.initials}`}
+                            />
                             <AvatarFallback>{player.initials}</AvatarFallback>
                           </Avatar>
                           <div>
@@ -417,7 +548,10 @@ function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
                                 </Badge>
                               )}
                               {viceCaptain === player.id && (
-                                <Badge variant="outline" className="bg-gray-500/20 text-gray-400 border-gray-500/30">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-gray-500/20 text-gray-400 border-gray-500/30"
+                                >
                                   VC
                                 </Badge>
                               )}
@@ -425,30 +559,47 @@ function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
                             <div className="text-xs text-muted-foreground flex items-center gap-2">
                               <span>{player.team}</span>
                               <span>•</span>
-                              <Badge variant="outline" className="text-xs py-0 h-5">
+                              <Badge
+                                variant="outline"
+                                className="text-xs py-0 h-5"
+                              >
                                 {player.role}
                               </Badge>
                             </div>
                           </div>
                         </div>
-                        <div className="text-xl font-bold">{player.livePoints || 0}</div>
+                        <div className="text-xl font-bold">
+                          {player.livePoints || 0}
+                        </div>
                       </div>
                       <div className="bg-muted/30 p-3 grid grid-cols-3 text-center text-sm">
                         <div>
-                          <div className="text-xs text-muted-foreground">Runs</div>
-                          <div className="font-medium">{player.stats?.runs || 0}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Runs
+                          </div>
+                          <div className="font-medium">
+                            {player.stats?.runs || 0}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-xs text-muted-foreground">Wickets</div>
-                          <div className="font-medium">{player.stats?.wickets || 0}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Wickets
+                          </div>
+                          <div className="font-medium">
+                            {player.stats?.wickets || 0}
+                          </div>
                         </div>
                         <div>
-                          <div className="text-xs text-muted-foreground">Catches</div>
-                          <div className="font-medium">{player.stats?.catches || 0}</div>
+                          <div className="text-xs text-muted-foreground">
+                            Catches
+                          </div>
+                          <div className="font-medium">
+                            {player.stats?.catches || 0}
+                          </div>
                         </div>
                       </div>
                     </Card>
-                  )
+                  );
                 })}
               </div>
             </div>
@@ -493,7 +644,9 @@ function TeamView({ match, selectedPlayers, captain, viceCaptain }: any) {
                 </div>
                 <span className="font-bold">187/8</span>
               </div>
-              <div className="text-sm text-muted-foreground mt-2">{match.teamA} needs 43 runs from 24 balls</div>
+              <div className="text-sm text-muted-foreground mt-2">
+                {match.teamA} needs 43 runs from 24 balls
+              </div>
             </div>
 
             <Link href="/leaderboard">

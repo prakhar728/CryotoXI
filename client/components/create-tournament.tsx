@@ -32,6 +32,7 @@ import { getMatchInfo, formatMatchDataForForm } from "@/lib/cricketApiService";
 import { uploadText } from "@/utils/ipfs";
 import { useWriteContract } from "wagmi";
 import contractConfig from "../contracts/index";
+import { parseEther } from "viem";
 
 export function CreateTournamentDialog({
   open,
@@ -113,10 +114,21 @@ export function CreateTournamentDialog({
       console.log(ipfsResult);
       console.log(formData);
 
-      setIpfsHash(ipfsResult);
       setUploadSuccess(true);
 
       // After successful upload
+
+      console.log({
+        args: [
+          matchId,
+          ipfsResult,
+          parseEther(formData.entryFee.toString()),
+          BigInt(Math.floor(Date.now() / 1000) + 180),
+          BigInt(Math.floor(Date.now() / 1000) + 360),
+          // formData.unixStartTime,
+          // formData.unixStartTime + 10800,
+        ],
+      });
 
       await writeContractAsync({
         abi: contractConfig.ContestFactory.abi,
@@ -124,10 +136,12 @@ export function CreateTournamentDialog({
         functionName: "createContest",
         args: [
           matchId,
-          ipfsHash,
-          formData.entryFee,
-          formData.unixStartTime,
-          formData.unixStartTime + 10800,
+          ipfsResult,
+          parseEther(formData.entryFee.toString()),
+          BigInt(Math.floor(Date.now() / 1000) + 600),
+          BigInt(Math.floor(Date.now() / 1000) + 360),
+          // formData.unixStartTime,
+          // formData.unixStartTime + 10800,
         ],
       });
 
@@ -139,8 +153,14 @@ export function CreateTournamentDialog({
     }
   };
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 2));
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = (e: any) => {
+    e.preventDefault();
+    setStep((prev) => Math.min(prev + 1, 2));
+  };
+  const prevStep = (e: any) => {
+    e.preventDefault();
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
 
   const fetchMatchInfo = async () => {
     if (!matchId.trim()) {
@@ -168,7 +188,7 @@ export function CreateTournamentDialog({
         date: formattedData.date || "",
         time: formattedData.time || "",
         venue: formattedData.venue || "",
-        entryFee: "2",
+        entryFee: "1",
         prizePool: "500",
         maxParticipants: "10000",
         description: formattedData.description || "",
@@ -309,7 +329,7 @@ export function CreateTournamentDialog({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form>
           {step === 1 && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -503,6 +523,9 @@ export function CreateTournamentDialog({
                 type="submit"
                 className="ml-auto bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
                 disabled={isLoading}
+                onClick={(e) => {
+                  if (!isLoading) handleSubmit(e);
+                }}
               >
                 {isLoading ? (
                   <>

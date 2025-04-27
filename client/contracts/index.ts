@@ -4,7 +4,7 @@ import  ContestFactory from "./ContestFactory.json";
 
 const contractConfig = {
     ContestFactory,
-    ContestFactoryAddress: "0x980d4bc59Ea281F36320B5C5D2f51a40A54E9ad8" as Address,
+    ContestFactoryAddress: "0xb707EF14763C10a60D42f168023fe26041483A34" as Address,
 }
 
 export default contractConfig;

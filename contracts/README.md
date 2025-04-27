@@ -194,5 +194,5 @@ Copy the `.env.example` to `.env` and fill in the `PRIVATE_KEY`
 
 Deploying CryptoXI Fantasy Cricket Platform...
   Using cricket API key: XXXX
-  ContestFactory deployed to: 0x980d4bc59Ea281F36320B5C5D2f51a40A54E9ad8
-  FDCDataConsumer deployed to: 0xD1Cd2BC99798E95D9a4596E0e900c6b1872463D6
+  ContestFactory deployed to: 0xb707EF14763C10a60D42f168023fe26041483A34
+  FDCDataConsumer deployed to: 0x67907161E201866bB2838db5B1e2F6d70a1c6584

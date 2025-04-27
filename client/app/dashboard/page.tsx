@@ -1,24 +1,29 @@
-'use client';
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { CalendarDays, Clock, PlusCircle, Trophy } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useState } from "react"
-import { CreateTournamentDialog } from "@/components/create-tournament"
-import { useChainId, useReadContract, useReadContracts } from "wagmi";
+import Link from "next/link";
+import Image from "next/image";
+import { CalendarDays, Clock, PlusCircle, Trophy } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useEffect, useState } from "react";
+import { CreateTournamentDialog } from "@/components/create-tournament";
+import { useReadContract, useReadContracts } from "wagmi";
 import contractConfig from "@/contracts";
 
 export function AdminControls() {
-  const [showCreateDialog, setShowCreateDialog] = useState(false)
-  
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
   return (
     <>
       <div className="flex justify-end mb-4">
-        <Button 
+        <Button
           onClick={() => setShowCreateDialog(true)}
           className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
         >
@@ -26,59 +31,122 @@ export function AdminControls() {
           Create Tournament
         </Button>
       </div>
-      
-      <CreateTournamentDialog 
-        open={showCreateDialog} 
-        onOpenChange={setShowCreateDialog} 
+
+      <CreateTournamentDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
       />
     </>
-  )
+  );
 }
 
 export default function DashboardPage() {
-  const [isAdmin, setisAdmin] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(true);
   const [allMatches, setAllMatches] = useState([]);
+  const [ongoingMatches, setOngoingMatches] = useState([]);
+  const [upcomingMatches, setUpcomingMatches] = useState([]);
+  const [completedMatches, setCompletedMatches] = useState([]);
 
-  
-  const { data: contestIds, isLoading: isLoadingIds, error: readError } = useReadContract({
+  const {
+    data: contestIds,
+    isLoading: isLoadingIds,
+    error: readError,
+  } = useReadContract({
     address: contractConfig.ContestFactoryAddress,
     abi: contractConfig.ContestFactory.abi,
-    functionName: 'getAllContests',
-    chainId: 114
+    functionName: "getAllContests",
   });
 
-  console.log({
-    address: contractConfig.ContestFactoryAddress,
-    abi: contractConfig.ContestFactory.abi,
-    functionName: 'getAllContests',
-    chainId: 114
-  });
-  
-  console.log(contestIds);
-  
   if (readError) console.log(readError);
+
+  const {
+    data: allContests,
+    isLoading,
+    error: multipleReadError,
+  } = contractConfig.ContestFactory
+    ? useReadContracts({
+        contracts: (contestIds && contestIds.length ? contestIds : []).map(
+          (id) => ({
+            address: contractConfig.ContestFactoryAddress,
+            abi: contractConfig.ContestFactory.abi,
+            functionName: "getContest",
+            args: [id],
+          })
+        ),
+      })
+    : { data: undefined, isLoading: false, error: undefined };
+
+  useEffect(() => {
+    const formatContests = async () => {
+      if (!allContests || !allContests.length) return;
   
-  // const {
-  //   data: allContests,
-  //   isLoading,
-  //   error: multipleReadError,
-  // } = contractConfig.ContestFactory
-  //   ? useReadContracts({
-  //       contracts: (parseInt(contestIds) ? new Array(parseInt(latestPaperId)) : []).fill(null).map((_, index) => ({
-  //         address: ContractAddresses.sageNetCore as `0x${string}`,
-  //         abi: SageNetCore.abi,
-  //         functionName: "getPaper",
-  //         args: [index + 1],
-  //       })),
-  //     })
-  //   : { data: undefined, isLoading: false, error: undefined };
+      // Create an array of promises
+      const contestPromises = allContests.map(async (c) => {
+        if (!(c.status === "success")) return null;
+  
+        try {
+          let temp = c.result;
+          let response = await fetch(`https://gateway.lighthouse.storage/ipfs/${temp.ipfsHash}`);
+          let matchDetails = await response.json(); // Assuming it's JSON
+          
+          return {
+            ...temp,
+            ...matchDetails
+          };
+        } catch (error) {
+          console.error("Error fetching match details:", error);
+          return null;
+        }
+      });
+  
+      // Wait for all promises to resolve
+      const formattedContests = await Promise.all(contestPromises);
+      
+      // Filter out null values (failed fetches)
+      const validContests = formattedContests.filter(contest => contest !== null);
+      
+      // Set state with the formatted contests
+      setAllMatches(validContests);
+    };
+  
+    formatContests();
+  }, [allContests]);
+
+  useEffect(() => {
+    if (!allMatches.length) return;
+
+    const now = Date.now() / 1000; // Current time in seconds
+
+    // Filter for ongoing matches (started but not ended)
+    const ongoing = allMatches.filter(match => 
+      Number(match.startTime) < now && Number(match.endTime) > now
+    );
+    
+    // Filter for upcoming matches (not started yet)
+    const upcoming = allMatches.filter(match => 
+      Number(match.startTime) > now
+    );
+    
+    // Filter for completed matches (ended or scores finalized)
+    const completed = allMatches.filter(match => 
+      Number(match.endTime) < now || match.scoresFinalized
+    );
+
+    setOngoingMatches(ongoing);
+    setUpcomingMatches(upcoming);
+    setCompletedMatches(completed);
+
+  }, [allMatches]);
 
   return (
     <div className="container py-10">
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Match Selection</h1>
-          <p className="text-muted-foreground">Select a match to create your fantasy team or view your existing team</p>
+          <p className="text-muted-foreground">
+            Select a match to create your fantasy team or view your existing
+            team
+          </p>
         </div>
 
         {isAdmin && <AdminControls />}
@@ -90,33 +158,74 @@ export default function DashboardPage() {
             <TabsTrigger value="completed">Completed</TabsTrigger>
           </TabsList>
           <TabsContent value="ongoing" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {ongoingMatches.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-8">Loading matches...</div>
+            ) : ongoingMatches.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {ongoingMatches.map((match) => (
+                  <MatchCard key={match.contestId} match={match} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">No ongoing matches at the moment</div>
+            )}
           </TabsContent>
           <TabsContent value="upcoming" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {upcomingMatches.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-8">Loading matches...</div>
+            ) : upcomingMatches.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {upcomingMatches.map((match) => (
+                  <MatchCard key={match.contestId} match={match} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">No upcoming matches scheduled</div>
+            )}
           </TabsContent>
           <TabsContent value="completed" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {completedMatches.map((match) => (
-                <MatchCard key={match.id} match={match} />
-              ))}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-8">Loading matches...</div>
+            ) : completedMatches.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {completedMatches.map((match) => (
+                  <MatchCard key={match.contestId} match={match} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">No completed matches</div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
     </div>
-  )
+  );
 }
 
-function MatchCard({ match }: { match: any }) {
+function MatchCard({ match }) {
+  // Format the time label based on match status
+  const getTimeLabel = () => {
+    const now = Date.now() / 1000; // Current time in seconds
+    
+    if (Number(match.startTime) > now) {
+      return match.time; // Upcoming match - show scheduled time
+    } else if (Number(match.endTime) < now || match.scoresFinalized) {
+      return "Completed"; // Completed match
+    } else {
+      return "Live"; // Ongoing match
+    }
+  };
+
+  // Check if user has a team for this match (placeholder logic)
+  // In a real app, this would check against user's teams
+  const hasTeam = false; // Replace with actual logic
+  
+  // Format prize pool to display with FLR
+  const prizePool = `${match.prizePool} FLR`;
+  
+  // Format participants count (could be enhanced with actual count)
+  const participants = `${match.participantCount || 0}/${match.maxParticipants}`;
+
   return (
     <Card className="overflow-hidden bg-card/30 backdrop-blur-sm border-muted/30 hover:border-primary/50 transition-colors group">
       <CardHeader className="p-0">
@@ -161,12 +270,15 @@ function MatchCard({ match }: { match: any }) {
       <CardContent className="p-6">
         <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+            <Badge
+              variant="outline"
+              className="bg-primary/10 text-primary border-primary/20"
+            >
               {match.type}
             </Badge>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Trophy className="h-4 w-4" />
-              <span>Prize Pool: {match.prizePool} FLR</span>
+              <span>Prize Pool: {prizePool}</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
@@ -176,7 +288,7 @@ function MatchCard({ match }: { match: any }) {
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
-              <span>{match.time}</span>
+              <span>{getTimeLabel()}</span>
             </div>
           </div>
           <div className="flex items-center justify-between">
@@ -184,113 +296,27 @@ function MatchCard({ match }: { match: any }) {
               Entry Fee: <span className="font-bold">{match.entryFee} FLR</span>
             </div>
             <div className="text-sm">
-              Participants: <span className="font-bold">{match.participants}</span>
+              Participants: <span className="font-bold">{participants}</span>
             </div>
+          </div>
+          <div className="text-sm line-clamp-2 text-muted-foreground">
+            {match.venue && <span>Venue: {match.venue}</span>}
           </div>
         </div>
       </CardContent>
       <CardFooter className="p-6 pt-0">
-        <Link href={`/match/${match.id}`} className="w-full">
+        <Link href={`/match/${match.contestId}`} className="w-full">
           <Button
-            className={`w-full ${match.hasTeam ? "bg-green-600 hover:bg-green-700" : "bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"}`}
+            className={`w-full ${
+              hasTeam
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
+            }`}
           >
-            {match.hasTeam ? "View Team" : "Join Contest"}
+            {hasTeam ? "View Team" : "Join Contest"}
           </Button>
         </Link>
       </CardFooter>
     </Card>
-  )
+  );
 }
-
-const ongoingMatches = [
-  {
-    id: "1",
-    teamA: "IND",
-    teamB: "AUS",
-    type: "T20",
-    date: "Today",
-    time: "Live",
-    entryFee: 5,
-    prizePool: 1000,
-    participants: "10.5K",
-    hasTeam: true,
-  },
-  {
-    id: "2",
-    teamA: "ENG",
-    teamB: "NZ",
-    type: "ODI",
-    date: "Today",
-    time: "Live",
-    entryFee: 3,
-    prizePool: 750,
-    participants: "8.2K",
-    hasTeam: false,
-  },
-]
-
-const upcomingMatches = [
-  {
-    id: "3",
-    teamA: "SA",
-    teamB: "PAK",
-    type: "Test",
-    date: "Tomorrow",
-    time: "10:00 AM",
-    entryFee: 2,
-    prizePool: 500,
-    participants: "5.7K",
-    hasTeam: false,
-  },
-  {
-    id: "4",
-    teamA: "WI",
-    teamB: "SL",
-    type: "T20",
-    date: "Jun 18, 2023",
-    time: "2:30 PM",
-    entryFee: 1,
-    prizePool: 250,
-    participants: "3.1K",
-    hasTeam: false,
-  },
-  {
-    id: "5",
-    teamA: "BAN",
-    teamB: "AFG",
-    type: "ODI",
-    date: "Jun 20, 2023",
-    time: "9:00 AM",
-    entryFee: 1.5,
-    prizePool: 300,
-    participants: "2.8K",
-    hasTeam: false,
-  },
-]
-
-const completedMatches = [
-  {
-    id: "6",
-    teamA: "IND",
-    teamB: "PAK",
-    type: "T20",
-    date: "Jun 10, 2023",
-    time: "Completed",
-    entryFee: 5,
-    prizePool: 1200,
-    participants: "15.3K",
-    hasTeam: true,
-  },
-  {
-    id: "7",
-    teamA: "AUS",
-    teamB: "ENG",
-    type: "ODI",
-    date: "Jun 8, 2023",
-    time: "Completed",
-    entryFee: 4,
-    prizePool: 900,
-    participants: "12.7K",
-    hasTeam: true,
-  },
-]
