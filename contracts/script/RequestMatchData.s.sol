@@ -64,7 +64,7 @@ contract RequestMatchDataScript is Script {
 
         // Prepare attestation request
         string memory attestationTypeName = "JsonApi";
-        string memory attestationType = toUtf8HexString(attestationTypeName);
+        string memory attestationType = toUtf8HexString("IJsonApi");
         string memory sourceName = "WEB2";
         string memory sourceId = toUtf8HexString(sourceName);
 
@@ -145,32 +145,32 @@ contract RequestMatchDataScript is Script {
         "}";
 
         // ABI signature for response data structure
-        string memory abiSignature = '{"components": ['
-        '{"internalType": "string", "name": "matchId", "type": "string"},'
-        '{"internalType": "string", "name": "matchName", "type": "string"},'
-        '{"internalType": "string", "name": "matchStatus", "type": "string"},'
-        '{"internalType": "string[]", "name": "teams", "type": "string[]"},'
-        '{"components": ['
-        '{"internalType": "string", "name": "playerId", "type": "string"},'
-        '{"internalType": "string", "name": "name", "type": "string"},'
-        '{"internalType": "uint256", "name": "runs", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "balls", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "fours", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "sixes", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "strikeRate", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "overs", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "maidens", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "wickets", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "runsConceded", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "economy", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "wides", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "noBalls", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "catches", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "runouts", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "stumpings", "type": "uint256"},'
-        '{"internalType": "uint256", "name": "fantasyPoints", "type": "uint256"}'
-        '], "internalType": "struct PlayerPerformance[]", "name": "playerPerformances", "type": "tuple[]"}'
-        '], "name": "MatchScorecard", "type": "tuple"}';
+        string memory abiSignature = '{\\\"components\\\": ['
+'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchId\\\", \\\"type\\\": \\\"string\\\"},'
+'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchName\\\", \\\"type\\\": \\\"string\\\"},'
+'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchStatus\\\", \\\"type\\\": \\\"string\\\"},'
+'{\\\"internalType\\\": \\\"string[]\\\", \\\"name\\\": \\\"teams\\\", \\\"type\\\": \\\"string[]\\\"},'
+'{\\\"components\\\": ['
+'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"playerId\\\", \\\"type\\\": \\\"string\\\"},'
+'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"name\\\", \\\"type\\\": \\\"string\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runs\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"balls\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fours\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"sixes\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"strikeRate\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"overs\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"maidens\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wickets\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runsConceded\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"economy\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wides\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"noBalls\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"catches\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runouts\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"stumpings\\\", \\\"type\\\": \\\"uint256\\\"},'
+'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fantasyPoints\\\", \\\"type\\\": \\\"uint256\\\"}'
+'], \\\"internalType\\\": \\\"struct PlayerPerformance[]\\\", \\\"name\\\": \\\"playerPerformances\\\", \\\"type\\\": \\\"tuple[]\\\"}'
+'], \\\"name\\\": \\\"MatchScorecard\\\", \\\"type\\\": \\\"tuple\\\"}';
 
         // Prepare request body
         string memory requestBody = string(
