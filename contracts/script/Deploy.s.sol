@@ -26,7 +26,6 @@ contract DeployScript is Script {
         
         // Log the deployed contract addresses
         console.log("ContestFactory deployed to:", address(contestFactory));
-        console.log("FDCDataConsumer deployed to:", address(contestFactory.fdcDataConsumer()));
         
         // Save the contract addresses to a file
         string memory contractAddresses = vm.toString(address(contestFactory));

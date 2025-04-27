@@ -145,8 +145,8 @@ forge script script/SubmitTeam.s.sol:SubmitTeamScript --rpc-url $COSTON2_RPC_URL
 
 ```bash
 # Set environment variables
-export MATCH_ID="3659022a-de1d-48fe-b68a-c62197297408"
-export CONTEST_ID="0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+export MATCH_ID="3683354f-3c17-4346-9236-8d2bc474e7a5"
+export CONTEST_ID="0xf5a88fcbd2cd62af2b16dda61657fb6758eaf013b156d10cba5a170611b3de42"
 
 # Request match data from FDC
 forge script script/RequestMatchData.s.sol:RequestMatchDataScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast --ffi

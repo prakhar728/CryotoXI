@@ -6,18 +6,24 @@ import "@openzeppelin-contracts/utils/Strings.sol";
 import "flare-periphery/src/coston2/IJsonApi.sol";
 import "./ContestData.sol";
 import "./ScoringEngine.sol";
-import "./FDCDataConsumer.sol";
+
+import "flare-periphery/src/coston2/ContractRegistry.sol";
+import "flare-periphery/src/coston2/IFdcRequestFeeConfigurations.sol";
+import "flare-periphery/src/coston2/IFdcHub.sol";
+import "flare-periphery/src/coston2/IFlareSystemsManager.sol";
 
 /**
  * @title ContestFactory
  * @dev Main contract for CryptoXI Fantasy Cricket platform
  */
 contract ContestFactory is Ownable {
+
+    using ContractRegistry for *;
+    
     // Libraries
     using Strings for uint256;
 
     // Contracts
-    FDCDataConsumer public fdcDataConsumer;
 
     // Constants
     uint256 private constant ADMIN_FEE_PERCENTAGE = 10; // 10% of entry fee
@@ -70,7 +76,6 @@ contract ContestFactory is Ownable {
         cricketApiKey = _cricketApiKey;
 
         // Initialize contracts
-        fdcDataConsumer = new FDCDataConsumer();
 
         // Set default prize breakdown (50% to 1st, 30% to 2nd, 20% to 3rd)
         defaultPrizeBreakdown.push(ContestData.PrizeBreakdown(1, 5000)); // 50%
@@ -265,8 +270,12 @@ contract ContestFactory is Ownable {
     /**
      * @dev Request match data from FDC
      * @param contestId Contest ID
+     * @param abiEncodedRequest Pre-verified request bytes from the script
      */
-    function requestMatchData(bytes32 contestId) external payable onlyOwner {
+    function requestMatchData(
+        bytes32 contestId,
+        bytes memory abiEncodedRequest
+    ) external payable onlyOwner {
         ContestData.Contest storage contest = contests[contestId];
         require(contest.startTime > 0, "Contest does not exist");
         require(
@@ -276,11 +285,21 @@ contract ContestFactory is Ownable {
         );
         require(!contest.scoresFinalized, "Scores already finalized");
 
-        // Request attestation from FDC
-        fdcDataConsumer.requestMatchScorecard{value: msg.value}(
-            contest.matchId,
-            cricketApiKey
+        // Get request fee
+        IFdcRequestFeeConfigurations fdcRequestFeeConfigurations = ContractRegistry
+                .getFdcRequestFeeConfigurations();
+        uint256 requestFee = fdcRequestFeeConfigurations.getRequestFee(
+            abiEncodedRequest
         );
+
+        require(
+            msg.value >= requestFee,
+            "Insufficient fee for attestation request"
+        );
+
+        // Submit attestation request to FDC Hub
+        IFdcHub fdcHub = ContractRegistry.getFdcHub();
+        fdcHub.requestAttestation{value: requestFee}(abiEncodedRequest);
     }
 
     /**
@@ -296,9 +315,25 @@ contract ContestFactory is Ownable {
         require(contest.startTime > 0, "Contest does not exist");
         require(!contest.scoresFinalized, "Scores already finalized");
 
-        // Process the FDC attestation proof
-        ContestData.MatchScorecard memory scorecard = fdcDataConsumer
-            .processAttestationProof(contest.matchId, proof);
+        // Verify the proof using FDC Verification
+        bool isValid = ContractRegistry
+            .auxiliaryGetIJsonApiVerification()
+            .verifyJsonApi(proof);
+        require(isValid, "Invalid FDC proof");
+
+        // Decode the attestation response
+        bytes memory responseData = proof.data.responseBody.abi_encoded_data;
+        ContestData.MatchScorecard memory scorecard = abi.decode(
+            responseData,
+            (ContestData.MatchScorecard)
+        );
+
+        // Verify match ID matches
+        require(
+            keccak256(abi.encodePacked(scorecard.matchId)) ==
+                keccak256(abi.encodePacked(contest.matchId)),
+            "Match ID mismatch"
+        );
 
         // Process player performances and calculate fantasy points
         scorecard = ScoringEngine.processMatchScorecard(scorecard);
