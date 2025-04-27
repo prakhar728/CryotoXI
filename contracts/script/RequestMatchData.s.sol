@@ -41,7 +41,7 @@ contract RequestMatchDataScript is Script {
 
     struct AttestationResponse {
         string status;
-        bytes abiEncodedRequest;
+        string abiEncodedRequest;
     }
 
     function run() external {
@@ -81,96 +81,102 @@ contract RequestMatchDataScript is Script {
         );
 
         // JQ filter for extracting player data
-        string memory postprocessJq = "{"
-        '\\"matchId\\": .data.id, '
-        '\\"matchName\\": .data.name, '
-        '\\"matchStatus\\": .data.status, '
-        '\\"teams\\": .data.teams, '
-        '\\"playerPerformances\\": ['
-        "(.data.scorecard[0].batting[] | {"
-        '\\"playerId\\": .batsman.id, '
-        '\\"name\\": .batsman.name, '
-        '\\"runs\\": .r, '
-        '\\"balls\\": .b, '
-        '\\"fours\\": .\\"4s\\", '
-        '\\"sixes\\": .\\"6s\\", '
-        '\\"strikeRate\\": .sr'
-        "}), "
-        "(.data.scorecard[0].bowling[] | {"
-        '\\"playerId\\": .bowler.id, '
-        '\\"name\\": .bowler.name, '
-        '\\"overs\\": .o, '
-        '\\"maidens\\": .m, '
-        '\\"wickets\\": .w, '
-        '\\"runsConceded\\": .r, '
-        '\\"economy\\": .eco, '
-        '\\"wides\\": .wd, '
-        '\\"noBalls\\": .nb'
-        "}), "
-        "(.data.scorecard[1].batting[] | {"
-        '\\"playerId\\": .batsman.id, '
-        '\\"name\\": .batsman.name, '
-        '\\"runs\\": .r, '
-        '\\"balls\\": .b, '
-        '\\"fours\\": .\\"4s\\", '
-        '\\"sixes\\": .\\"6s\\", '
-        '\\"strikeRate\\": .sr'
-        "}), "
-        "(.data.scorecard[1].bowling[] | {"
-        '\\"playerId\\": .bowler.id, '
-        '\\"name\\": .bowler.name, '
-        '\\"overs\\": .o, '
-        '\\"maidens\\": .m, '
-        '\\"wickets\\": .w, '
-        '\\"runsConceded\\": .r, '
-        '\\"economy\\": .eco, '
-        '\\"wides\\": .wd, '
-        '\\"noBalls\\": .nb'
-        "}), "
-        "(.data.scorecard[0].catching[] | {"
-        '\\"playerId\\": .catcher.id, '
-        '\\"name\\": .catcher.name, '
-        '\\"catches\\": .catch, '
-        '\\"runouts\\": .runout, '
-        '\\"stumpings\\": .stumped'
-        "}), "
-        "(.data.scorecard[1].catching[] | {"
-        '\\"playerId\\": .catcher.id, '
-        '\\"name\\": .catcher.name, '
-        '\\"catches\\": .catch, '
-        '\\"runouts\\": .runout, '
-        '\\"stumpings\\": .stumped'
-        "})"
-        "]"
-        "}";
+        // string memory postprocessJq = "{"
+        // '\\"matchId\\": .data.id, '
+        // '\\"matchName\\": .data.name, '
+        // '\\"matchStatus\\": .data.status, '
+        // '\\"teams\\": .data.teams, '
+        // '\\"playerPerformances\\": ['
+        // "(.data.scorecard[0].batting[] | {"
+        // '\\"playerId\\": .batsman.id, '
+        // '\\"name\\": .batsman.name, '
+        // '\\"runs\\": .r, '
+        // '\\"balls\\": .b, '
+        // '\\"fours\\": .\\"4s\\", '
+        // '\\"sixes\\": .\\"6s\\", '
+        // '\\"strikeRate\\": .sr'
+        // "}), "
+        // "(.data.scorecard[0].bowling[] | {"
+        // '\\"playerId\\": .bowler.id, '
+        // '\\"name\\": .bowler.name, '
+        // '\\"overs\\": .o, '
+        // '\\"maidens\\": .m, '
+        // '\\"wickets\\": .w, '
+        // '\\"runsConceded\\": .r, '
+        // '\\"economy\\": .eco, '
+        // '\\"wides\\": .wd, '
+        // '\\"noBalls\\": .nb'
+        // "}), "
+        // "(.data.scorecard[1].batting[] | {"
+        // '\\"playerId\\": .batsman.id, '
+        // '\\"name\\": .batsman.name, '
+        // '\\"runs\\": .r, '
+        // '\\"balls\\": .b, '
+        // '\\"fours\\": .\\"4s\\", '
+        // '\\"sixes\\": .\\"6s\\", '
+        // '\\"strikeRate\\": .sr'
+        // "}), "
+        // "(.data.scorecard[1].bowling[] | {"
+        // '\\"playerId\\": .bowler.id, '
+        // '\\"name\\": .bowler.name, '
+        // '\\"overs\\": .o, '
+        // '\\"maidens\\": .m, '
+        // '\\"wickets\\": .w, '
+        // '\\"runsConceded\\": .r, '
+        // '\\"economy\\": .eco, '
+        // '\\"wides\\": .wd, '
+        // '\\"noBalls\\": .nb'
+        // "}), "
+        // "(.data.scorecard[0].catching[] | {"
+        // '\\"playerId\\": .catcher.id, '
+        // '\\"name\\": .catcher.name, '
+        // '\\"catches\\": .catch, '
+        // '\\"runouts\\": .runout, '
+        // '\\"stumpings\\": .stumped'
+        // "}), "
+        // "(.data.scorecard[1].catching[] | {"
+        // '\\"playerId\\": .catcher.id, '
+        // '\\"name\\": .catcher.name, '
+        // '\\"catches\\": .catch, '
+        // '\\"runouts\\": .runout, '
+        // '\\"stumpings\\": .stumped'
+        // "})"
+        // "]"
+        // "}";
+
+        string memory postprocessJq = '{\\"matchId\\": .data.id}';
 
         // ABI signature for response data structure
-        string memory abiSignature = '{\\\"components\\\": ['
-'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchId\\\", \\\"type\\\": \\\"string\\\"},'
-'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchName\\\", \\\"type\\\": \\\"string\\\"},'
-'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchStatus\\\", \\\"type\\\": \\\"string\\\"},'
-'{\\\"internalType\\\": \\\"string[]\\\", \\\"name\\\": \\\"teams\\\", \\\"type\\\": \\\"string[]\\\"},'
-'{\\\"components\\\": ['
-'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"playerId\\\", \\\"type\\\": \\\"string\\\"},'
-'{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"name\\\", \\\"type\\\": \\\"string\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runs\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"balls\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fours\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"sixes\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"strikeRate\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"overs\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"maidens\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wickets\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runsConceded\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"economy\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wides\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"noBalls\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"catches\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runouts\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"stumpings\\\", \\\"type\\\": \\\"uint256\\\"},'
-'{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fantasyPoints\\\", \\\"type\\\": \\\"uint256\\\"}'
-'], \\\"internalType\\\": \\\"struct PlayerPerformance[]\\\", \\\"name\\\": \\\"playerPerformances\\\", \\\"type\\\": \\\"tuple[]\\\"}'
-'], \\\"name\\\": \\\"MatchScorecard\\\", \\\"type\\\": \\\"tuple\\\"}';
+        //         string memory abiSignature = '{\\\"components\\\": ['
+        // '{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchId\\\", \\\"type\\\": \\\"string\\\"},'
+        // '{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchName\\\", \\\"type\\\": \\\"string\\\"},'
+        // '{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"matchStatus\\\", \\\"type\\\": \\\"string\\\"},'
+        // '{\\\"internalType\\\": \\\"string[]\\\", \\\"name\\\": \\\"teams\\\", \\\"type\\\": \\\"string[]\\\"},'
+        // '{\\\"components\\\": ['
+        // '{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"playerId\\\", \\\"type\\\": \\\"string\\\"},'
+        // '{\\\"internalType\\\": \\\"string\\\", \\\"name\\\": \\\"name\\\", \\\"type\\\": \\\"string\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runs\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"balls\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fours\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"sixes\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"strikeRate\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"overs\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"maidens\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wickets\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runsConceded\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"economy\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"wides\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"noBalls\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"catches\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"runouts\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"stumpings\\\", \\\"type\\\": \\\"uint256\\\"},'
+        // '{\\\"internalType\\\": \\\"uint256\\\", \\\"name\\\": \\\"fantasyPoints\\\", \\\"type\\\": \\\"uint256\\\"}'
+        // '], \\\"internalType\\\": \\\"struct PlayerPerformance[]\\\", \\\"name\\\": \\\"playerPerformances\\\", \\\"type\\\": \\\"tuple[]\\\"}'
+        // '], \\\"name\\\": \\\"MatchScorecard\\\", \\\"type\\\": \\\"tuple\\\"}';
+
+        string memory abiSignature = '{\\"components\\": ['
+        '{\\"internalType\\": \\"string\\", \\"name\\": \\"matchId\\", \\"type\\": \\"string\\"}'
+        '], \\"name\\": \\"MatchBasicInfo\\", \\"type\\": \\"tuple\\"}';
 
         // Prepare request body
         string memory requestBody = string(
@@ -220,13 +226,32 @@ contract RequestMatchDataScript is Script {
 
         // Parse the attestation response
         string memory dataString = string(data);
-        bytes memory dataJson = vm.parseJson(dataString);
-        AttestationResponse memory response = abi.decode(
-            dataJson,
-            (AttestationResponse)
+        console.log("Response data string:", dataString);
+
+        string memory _status = vm.parseJsonString(dataString, ".status");
+        string memory abiEncodedRequestHex = vm.parseJsonString(
+            dataString,
+            ".abiEncodedRequest"
         );
 
-        console.log("Response status:", response.status);
+        console.log("Parsed status:", _status);
+        console.log("Parsed abiEncodedRequestHex:", abiEncodedRequestHex);
+        // bytes memory dataJson = vm.parseJson(dataString);
+
+        bytes memory abiEncodedRequestBytes = vm.parseBytes(
+            abiEncodedRequestHex
+        );
+
+        // AttestationResponse memory response = abi.decode(
+        //     dataJson,
+        //     (AttestationResponse)
+        // );
+
+        // console.log("Response status:", response.status);
+
+        // bytes memory abiEncodedRequestBytes = vm.parseBytes(
+        //     response.abiEncodedRequest
+        // );
         console.log("ABI encoded request received");
 
         // Save the abiEncodedRequest to a file
@@ -234,7 +259,7 @@ contract RequestMatchDataScript is Script {
             string(
                 abi.encodePacked("data/", matchId, "_abiEncodedRequest.txt")
             ),
-            toHexString(response.abiEncodedRequest)
+            abiEncodedRequestHex
         );
 
         console.log(
@@ -248,15 +273,10 @@ contract RequestMatchDataScript is Script {
         );
 
         // Get ContestFactory address from file
-        string memory deployedAddressesFile = vm.readFile(
+        string memory contestFactoryAddressStr = vm.readFile(
             "data/deployed-addresses.txt"
         );
-        string memory contestFactoryAddressStr = vm.parseJsonString(
-            string(
-                abi.encodePacked('{"address":"', deployedAddressesFile, '"}')
-            ),
-            ".address"
-        );
+        // Trim any whitespace if needed
         address contestFactoryAddress = vm.parseAddress(
             contestFactoryAddressStr
         );
@@ -268,7 +288,7 @@ contract RequestMatchDataScript is Script {
         IFdcRequestFeeConfigurations fdcRequestFeeConfigurations = ContractRegistry
                 .getFdcRequestFeeConfigurations();
         uint256 requestFee = fdcRequestFeeConfigurations.getRequestFee(
-            response.abiEncodedRequest
+            abiEncodedRequestBytes
         );
 
         console.log("Request fee:", requestFee);

@@ -29,10 +29,7 @@ contract DeployScript is Script {
         console.log("FDCDataConsumer deployed to:", address(contestFactory.fdcDataConsumer()));
         
         // Save the contract addresses to a file
-        string memory contractAddresses = string(abi.encodePacked(
-            "ContestFactory: ", vm.toString(address(contestFactory)), "\n",
-            "FDCDataConsumer: ", vm.toString(address(contestFactory.fdcDataConsumer()))
-        ));
+        string memory contractAddresses = vm.toString(address(contestFactory));
         
         // Create data directory if it doesn't exist
         string[] memory mkdirCmd = new string[](3);
