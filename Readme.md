@@ -79,8 +79,8 @@ Here’s how the user flow looks:
 | Flare Service | Usage in CryptoXI |
 | :--- | :--- |
 | **FDC (Flare Data Connector)** | Fetches real-time cricket scores and player stats |
-| **RNG (Random Number Generator)** | For random bonuses, tie-breakers, and loot events |
-| **FTSO (Time Series Oracle)** | Dynamically adjusts entry fees and prize pools based on live FLR prices |
+| **RNG (Random Number Generator)** (FUTURE PLAN)  | For random bonuses, tie-breakers, and loot events |
+| **FTSO (Time Series Oracle)** (FUTURE PLAN) | Dynamically adjusts entry fees and prize pools based on live FLR prices |
 
 ---
 
@@ -123,7 +123,7 @@ Even capturing **0.5%** of Dream11’s market could translate to **hundreds of t
 - [x] Finalize platform architecture (frontend + smart contracts).
 - [x] Integrate real-time cricket APIs via FDC.
 - [x] Build team-building flow (React + Tailwind).
-- [ ] Deploy smart contracts for:
+- [X] Deploy smart contracts for:
   - Team locking.
   - Points calculation.
   - Reward distribution.
