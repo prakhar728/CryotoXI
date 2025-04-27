@@ -68,8 +68,6 @@ contract RequestMatchDataScript is Script {
         string memory sourceName = "WEB2";
         string memory sourceId = toUtf8HexString(sourceName);
 
-        console.log(cricketApiKey);
-
         // Construct the cricket API URL
         string memory url = string(
             abi.encodePacked(
@@ -83,18 +81,14 @@ contract RequestMatchDataScript is Script {
         // string memory postprocessJq = '{\\"matchId\\": .data.id}';
 
         // JQ filter for extracting player data
-        string memory postprocessJq = "{matchId: .data.id, matchName: .data.name, matchStatus: .data.status, teams: .data.teams, playerPerformances: [(.data.scorecard[]? | .batting[]? | {playerId: .batsman.id, name: .batsman.name, runs: (.r | tonumber), balls: (.b | tonumber), fours: (.\"4s\" | tonumber), sixes: (.\"6s\" | tonumber), strikeRate: (.sr | tonumber), wickets: 0, maidens: 0, runsConceded: 0, economy: 0, wides: 0, noBalls: 0, catches: 0, runouts: 0, stumpings: 0, fantasyPoints: 0}), (.data.scorecard[]? | .bowling[]? | {playerId: .bowler.id, name: .bowler.name, runs: 0, balls: 0, fours: 0, sixes: 0, strikeRate: 0, wickets: (.w | tonumber), maidens: (.m | tonumber), runsConceded: (.r | tonumber), economy: (.eco | tonumber), wides: (.wd | tonumber), noBalls: (.nb | tonumber), catches: 0, runouts: 0, stumpings: 0, fantasyPoints: 0}), (.data.scorecard[]? | .catching[]? | {playerId: .catcher.id, name: .catcher.name, runs: 0, balls: 0, fours: 0, sixes: 0, strikeRate: 0, wickets: 0, maidens: 0, runsConceded: 0, economy: 0, wides: 0, noBalls: 0, catches: (.catch | tonumber), runouts: (.runout | tonumber), stumpings: (.stumped | tonumber), fantasyPoints: 0})]}";
+        string memory postprocessJq = '{matchId: .data.id, matchName: .data.name, matchStatus: .data.status, teams: .data.teams, playerPerformances: [(.data.scorecard[]? | .batting[]? | {playerId: .batsman.id, name: .batsman.name, runs: (.r | tonumber), balls: (.b | tonumber), fours: (.4s | tonumber), sixes: (.6s | tonumber), strikeRate: (.sr | if . != null then (. * 100 | floor) else 0 end), wickets: 0, maidens: 0, runsConceded: 0, economy: 0, wides: 0, noBalls: 0, catches: 0, runouts: 0, stumpings: 0, fantasyPoints: 0}), (.data.scorecard[]? | .bowling[]? | {playerId: .bowler.id, name: .bowler.name, runs: 0, balls: 0, fours: 0, sixes: 0, strikeRate: (.sr | if . != null then (. * 100 | floor) else 0 end), wickets: (.w | tonumber), maidens: (.m | tonumber), runsConceded: (.r | tonumber), economy: (.eco | if . != null then (. * 100 | floor) else 0 end), wides: (.wd | tonumber), noBalls: (.nb | tonumber), catches: 0, runouts: 0, stumpings: 0, fantasyPoints: 0}), (.data.scorecard[]? | .catching[]? | {playerId: .catcher.id, name: .catcher.name, runs: 0, balls: 0, fours: 0, sixes: 0, strikeRate: (.sr | if . != null then (. * 100 | floor) else 0 end), wickets: 0, maidens: 0, runsConceded: 0, economy: 0, wides: 0, noBalls: 0, catches: (.catch | tonumber), runouts: (.runout | tonumber), stumpings: (.stumped | tonumber), fantasyPoints: 0})]}';
+
 
 
         // ABISignature for PlayerPerformance that matches ScoringEngine requirements
         string memory abiSignature = 
-        '{\\"components\\": [{\\"internalType\\": \\"string\\", \\"name\\": \\"matchId\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"string\\", \\"name\\": \\"matchName\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"string\\", \\"name\\": \\"matchStatus\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"string[]\\", \\"name\\": \\"teams\\", \\"type\\": \\"string[]\\"},{\\"components\\": [{\\"internalType\\": \\"string\\", \\"name\\": \\"playerId\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"string\\", \\"name\\": \\"name\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"runs\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"balls\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"fours\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"sixes\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"strikeRate\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"wickets\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"maidens\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"runsConceded\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"economy\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"wides\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"noBalls\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"catches\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"runouts\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"stumpings\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"fantasyPoints\\", \\"type\\": \\"uint256\\"}], \\"internalType\\": \\"struct PlayerPerformance[]\\", \\"name\\": \\"playerPerformances\\", \\"type\\": \\"tuple[]\\"}], \\"name\\": \\"MatchScorecard\\", \\"type\\": \\"tuple\\"}';
-
-
+        '{\\"components\\": [{\\"internalType\\\": \\"string\\\", \\\"name\\\": \\"matchId\\\", \\\"type\\\": \\"string\\"},{\\"internalType\\\": \\"string\\\", \\\"name\\\": \\"matchName\\\", \\\"type\\\": \\"string\\"},{\\"internalType\\\": \\"string\\\", \\\"name\\\": \\"matchStatus\\\", \\\"type\\\": \\"string\\"},{\\"internalType\\\": \\"string[]\\\", \\\"name\\\": \\"teams\\\", \\\"type\\\": \\"string[]\\"},{\\"components\\\": [{\\"internalType\\\": \\"string\\\", \\\"name\\\": \\"playerId\\\", \\\"type\\\": \\"string\\"},{\\"internalType\\\": \\"string\\\", \\\"name\\\": \\"name\\\", \\\"type\\\": \\"string\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"runs\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"balls\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"fours\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"sixes\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"strikeRate\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"wickets\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"maidens\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"runsConceded\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"economy\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"wides\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"noBalls\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"catches\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"runouts\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"stumpings\\\", \\\"type\\\": \\"uint256\\"},{\\"internalType\\\": \\"uint256\\\", \\\"name\\\": \\"fantasyPoints\\\", \\\"type\\\": \\"uint256\\"}], \\\"internalType\\\": \\"struct PlayerPerformance[]\\\", \\\"name\\\": \\"playerPerformances\\\", \\\"type\\\": \\"tuple[]\\\"}], \\\"name\\\": \\"MatchScorecard\\\", \\\"type\\\": \\\"tuple\\\"}';
         
-        // string memory abiSignature = '{\\"components\\": ['
-        // '{\\"internalType\\": \\"string\\", \\"name\\": \\"matchId\\", \\"type\\": \\"string\\"}'
-        // '], \\"name\\": \\"MatchBasicInfo\\", \\"type\\": \\"tuple\\"}';
 
         // Prepare request body
         string memory requestBody = string(
@@ -108,6 +102,7 @@ contract RequestMatchDataScript is Script {
                 '"}'
             )
         );
+
 
         // Prepare headers for verifier request
         string[] memory headers = new string[](2);
@@ -124,6 +119,8 @@ contract RequestMatchDataScript is Script {
             requestBody,
             "}"
         );
+
+        console.log(body);
 
         // Create verifier URL
         // string memory verifierUrl = "https://fdc-verifiers-testnet.flare.network/verifier/WEB2/JsonApi/prepareRequest";
