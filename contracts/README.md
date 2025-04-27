@@ -105,7 +105,7 @@ Only the ContestFactory contract is deployed directly. The other contracts are c
 source .env
 
 # Deploy the ContestFactory contract
-forge script script/Deploy.s.sol:DeployScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast
+forge script script/Deploy.s.sol:DeployScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast --ffi
 ```
 
 ### Create a new contest:
@@ -122,7 +122,7 @@ export START_TIME="1713974400"  # Unix timestamp
 export END_TIME="1713988800"    # Unix timestamp
 
 # Create the contest
-forge script script/CreateContest.s.sol:CreateContestScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast
+forge script script/CreateContest.s.sol:CreateContestScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast --ffi
 ```
 
 ### Submit a team:
@@ -138,7 +138,7 @@ export CAPTAIN_ID="a034346c-b408-4d29-a0f0-8b12430be28e"
 export VICE_CAPTAIN_ID="de19a93e-06df-4597-9186-7a53c1613552"
 
 # Submit the team
-forge script script/SubmitTeam.s.sol:SubmitTeamScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast
+forge script script/SubmitTeam.s.sol:SubmitTeamScript --rpc-url $COSTON2_RPC_URL --private-key $PRIVATE_KEY --broadcast --ffi
 ```
 
 ### Request match data (after match):
@@ -194,5 +194,5 @@ Copy the `.env.example` to `.env` and fill in the `PRIVATE_KEY`
 
 Deploying CryptoXI Fantasy Cricket Platform...
   Using cricket API key: XXXX
-  ContestFactory deployed to: 0xb707EF14763C10a60D42f168023fe26041483A34
-  FDCDataConsumer deployed to: 0x67907161E201866bB2838db5B1e2F6d70a1c6584
+  ContestFactory deployed to: 0xDdA0258438aa2822b189D30fEAD3269B5E1C228a
+  FDCDataConsumer deployed to: 0x1c11dE84e93157E5458045e7D394B3933A1512cC
