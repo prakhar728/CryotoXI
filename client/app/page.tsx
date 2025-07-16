@@ -2,6 +2,7 @@ import Link from "next/link"
 import { ArrowRight, CheckCircle, Shield, Trophy, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import CTASection from "@/components/CTASection"
 
 export default function LandingPage() {
   return (
@@ -19,17 +20,20 @@ export default function LandingPage() {
                 platform.
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
-              >
-                 Start Playing
-              </Button>
-              <Button size="lg" variant="outline">
-                Learn More <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
+            <div className="flex items-center justify-center">
+              <a href="#waitlist">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="group border-muted text-muted-foreground hover:text-foreground transition-all"
+                >
+                  Learn More
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </a>
             </div>
+
+
           </div>
         </div>
         <div className="absolute inset-0 bg-[url('/placeholder.svg?height=800&width=1600')] opacity-10 bg-cover bg-center"></div>
@@ -37,7 +41,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-12 md:py-24 relative">
+      <section className="py-12 md:py-24 relative" id="how-it-works">
         <div className="container px-4 md:px-6">
           <div className="flex flex-col items-center gap-4 text-center mb-12">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-purple-400 to-cyan-400 bg-clip-text text-transparent">
@@ -127,31 +131,9 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-12 md:py-24 bg-gradient-to-t from-purple-900/20 to-cyan-900/20 relative">
-        <div className="container px-4 md:px-6">
-          <div className="flex flex-col items-center gap-4 text-center">
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Ready to Play and Earn?
-            </h2>
-            <p className="mx-auto max-w-[700px] text-muted-foreground md:text-xl">
-              Join thousands of players already earning crypto rewards through fantasy cricket
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-4 mt-6">
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-purple-600 to-cyan-600 hover:from-purple-700 hover:to-cyan-700"
-              >
-                Start Playing
-              </Button>
-              <Link href="/dashboard">
-                <Button size="lg" variant="outline">
-                  Browse Matches <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <CTASection />
+
+
 
       {/* Footer */}
       <footer className="border-t py-6 md:py-8">

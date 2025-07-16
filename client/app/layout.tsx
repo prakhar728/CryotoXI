@@ -5,6 +5,10 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 
+import "./globals.css";
+import ContextProvider from "@/context";import { headers } from "next/headers";
+import HomeNavbar from "@/components/homebar";
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
@@ -19,7 +23,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookies = (await headers()).get('cookie')
-
+  const headersList = headers()
+  const pathname = headersList.get("x-pathname") || "/" // fallback if header missing
+  const isHome = pathname === "/"
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -27,7 +33,7 @@ export default async function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark">
           <ContextProvider cookies={cookies}>
             <div className="min-h-screen bg-gradient-to-b from-background to-background/90 bg-fixed">
-              <Navbar />
+              {isHome ? <HomeNavbar /> : <Navbar />}
               <main>{children}</main>
             </div>
           </ContextProvider>
@@ -37,6 +43,4 @@ export default async function RootLayout({
   );
 }
 
-import "./globals.css";
-import ContextProvider from "@/context";import { headers } from "next/headers";
 
